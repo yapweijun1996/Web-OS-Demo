@@ -1,11 +1,12 @@
 import { useSettings, WALLPAPERS } from "../../os/settings";
+import { resetAndReload } from "../../os/persistence";
 
 export function Settings() {
   const wallpaper = useSettings((s) => s.wallpaper);
   const setWallpaper = useSettings((s) => s.setWallpaper);
 
   return (
-    <div className="p-5 space-y-4 text-sm">
+    <div className="p-5 space-y-5 text-sm">
       <section>
         <h3 className="text-xs uppercase tracking-wide text-white/60 mb-2">
           Wallpaper
@@ -29,6 +30,23 @@ export function Settings() {
             );
           })}
         </div>
+      </section>
+
+      <section>
+        <h3 className="text-xs uppercase tracking-wide text-white/60 mb-2">
+          Storage
+        </h3>
+        <button
+          type="button"
+          onClick={() => {
+            if (confirm("Wipe saved window layout + wallpaper and reload?")) {
+              resetAndReload();
+            }
+          }}
+          className="px-3 py-1.5 text-xs rounded bg-red-500/20 hover:bg-red-500/40 border border-red-500/40"
+        >
+          Reset desktop
+        </button>
       </section>
     </div>
   );

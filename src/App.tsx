@@ -7,10 +7,13 @@ import { WindowHost } from "./shell/WindowHost";
 import { TASKBAR_H } from "./os/store";
 import { useUI } from "./os/ui";
 import { useSettings, wallpaperClasses } from "./os/settings";
+import { startAutosave } from "./os/persistence";
 
 export default function App() {
   const closeAll = useUI((s) => s.closeAll);
   const wallpaper = useSettings((s) => s.wallpaper);
+
+  useEffect(() => startAutosave(), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
