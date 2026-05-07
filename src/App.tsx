@@ -6,9 +6,11 @@ import { ContextMenu } from "./shell/ContextMenu";
 import { WindowHost } from "./shell/WindowHost";
 import { TASKBAR_H } from "./os/store";
 import { useUI } from "./os/ui";
+import { useSettings, wallpaperClasses } from "./os/settings";
 
 export default function App() {
   const closeAll = useUI((s) => s.closeAll);
+  const wallpaper = useSettings((s) => s.wallpaper);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -20,7 +22,7 @@ export default function App() {
 
   return (
     <div
-      className="w-screen h-screen relative bg-gradient-to-br from-sky-700 via-indigo-800 to-indigo-900 text-white overflow-hidden"
+      className={`w-screen h-screen relative bg-gradient-to-br ${wallpaperClasses(wallpaper)} text-white overflow-hidden`}
       onClick={closeAll}
     >
       {/* Desktop layer (icons + right-click target) */}

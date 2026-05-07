@@ -10,3 +10,10 @@ html, body, #root {
   user-select: none;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Re-enable text selection for editable inputs (the global user-select: none
+   above keeps drag/double-click clean elsewhere) */
+input, textarea, [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+}
