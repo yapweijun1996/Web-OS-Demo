@@ -29,8 +29,14 @@ export function Taskbar() {
 
   return (
     <div
-      className="absolute left-0 right-0 bottom-0 bg-zinc-900/85 backdrop-blur-md border-t border-white/10 flex items-center px-1 gap-1"
-      style={{ height: `${TASKBAR_H}px`, zIndex: 9999 }}
+      className="absolute left-0 right-0 bottom-0 backdrop-blur-md border-t flex items-center px-1 gap-1"
+      style={{
+        height: `${TASKBAR_H}px`,
+        zIndex: 9999,
+        background: "var(--os-bg)",
+        color: "var(--os-text)",
+        borderColor: "var(--os-border)",
+      }}
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.stopPropagation()}
     >
@@ -38,8 +44,8 @@ export function Taskbar() {
         type="button"
         onClick={toggleStart}
         aria-label="Start menu"
-        className={`px-3 h-9 flex items-center gap-2 rounded hover:bg-white/10 text-sm ${
-          startOpen ? "bg-white/15" : ""
+        className={`px-3 h-9 flex items-center gap-2 rounded hover:bg-[var(--os-hover)] text-sm ${
+          startOpen ? "bg-[var(--os-active)]" : ""
         }`}
       >
         <LayoutGrid size={18} />
@@ -58,9 +64,9 @@ export function Taskbar() {
               type="button"
               onClick={() => handleTaskClick(w.id, w.minimized)}
               title={w.title}
-              className={`h-9 px-3 flex items-center gap-2 rounded text-xs hover:bg-white/10 ${
+              className={`h-9 px-3 flex items-center gap-2 rounded text-xs hover:bg-[var(--os-hover)] ${
                 isFocused
-                  ? "bg-white/15"
+                  ? "bg-[var(--os-active)]"
                   : w.minimized
                     ? "opacity-60"
                     : ""

@@ -25,14 +25,20 @@ export const WALLPAPERS = [
 
 export type WallpaperId = (typeof WALLPAPERS)[number]["id"];
 
+export type Theme = "dark" | "light";
+
 type SettingsStore = {
   wallpaper: WallpaperId;
+  theme: Theme;
   setWallpaper: (id: WallpaperId) => void;
+  setTheme: (t: Theme) => void;
 };
 
 export const useSettings = create<SettingsStore>((set) => ({
   wallpaper: "ocean",
+  theme: "dark",
   setWallpaper: (id) => set({ wallpaper: id }),
+  setTheme: (theme) => set({ theme }),
 }));
 
 export const wallpaperClasses = (id: WallpaperId): string =>

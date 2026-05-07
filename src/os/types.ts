@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import type { ComponentType, CSSProperties } from "react";
 
 export type WindowId = string;
 
@@ -21,7 +21,11 @@ export type WindowState = {
   appData?: Record<string, unknown>;
 };
 
-export type AppIconProps = { size?: number; className?: string };
+export type AppIconProps = {
+  size?: number;
+  className?: string;
+  style?: CSSProperties;
+};
 
 export type AppDef = {
   id: string;

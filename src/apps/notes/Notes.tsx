@@ -45,7 +45,9 @@ export function Notes({ windowId }: { windowId: string }) {
 
   if (!ready) {
     return (
-      <div className="p-5 text-xs text-white/60">Loading file system…</div>
+      <div className="p-5 text-xs" style={{ color: "var(--os-text-dim)" }}>
+        Loading file system…
+      </div>
     );
   }
 
@@ -53,7 +55,7 @@ export function Notes({ windowId }: { windowId: string }) {
   if (!fileId || !file) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-6 text-center text-sm space-y-3">
-        <p className="text-white/70">
+        <p style={{ color: "var(--os-text-dim)" }}>
           No file open. Create a new note to start writing.
         </p>
         <button
@@ -64,11 +66,11 @@ export function Notes({ windowId }: { windowId: string }) {
             const id = await createFile(name, null, "");
             launchApp("notes", { title: name, appData: { fileId: id } });
           }}
-          className="px-3 py-1.5 text-xs rounded bg-white/10 hover:bg-white/20 border border-white/20"
+          className="px-3 py-1.5 text-xs rounded bg-[var(--os-hover)] hover:bg-[var(--os-active)] border border-[var(--os-border)]"
         >
           New note
         </button>
-        <p className="text-[10px] text-white/40">
+        <p className="text-[10px]" style={{ color: "var(--os-text-dim)" }}>
           Or open File Explorer and double-click a .txt file
         </p>
       </div>
@@ -78,13 +80,19 @@ export function Notes({ windowId }: { windowId: string }) {
   return (
     <div className="h-full flex flex-col">
       <textarea
-        className="flex-1 w-full p-3 bg-transparent text-sm text-white outline-none resize-none font-mono leading-relaxed placeholder:text-white/30"
+        className="flex-1 w-full p-3 bg-transparent text-sm outline-none resize-none font-mono leading-relaxed"
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Type your notes here…"
         spellCheck={false}
       />
-      <div className="px-3 py-1 text-[10px] text-white/40 border-t border-white/10 flex justify-between">
+      <div
+        className="px-3 py-1 text-[10px] border-t flex justify-between"
+        style={{
+          color: "var(--os-text-dim)",
+          borderColor: "var(--os-border)",
+        }}
+      >
         <span>{file.name} · {text.length} chars</span>
         <span>
           {text === lastSavedRef.current ? "saved" : "saving…"} · IndexedDB

@@ -17,3 +17,33 @@ input, textarea, [contenteditable] {
   user-select: text;
   -webkit-user-select: text;
 }
+
+/* OS chrome theme. Defaults = dark glass. Wallpaper layer is independent. */
+:root, .theme-dark {
+  --os-bg: rgba(24, 24, 27, 0.92);
+  --os-bg-strong: rgba(24, 24, 27, 0.96);
+  --os-text: rgb(255, 255, 255);
+  --os-text-dim: rgba(255, 255, 255, 0.6);
+  --os-border: rgba(255, 255, 255, 0.1);
+  --os-hover: rgba(255, 255, 255, 0.1);
+  --os-active: rgba(255, 255, 255, 0.18);
+}
+
+.theme-light {
+  --os-bg: rgba(250, 250, 250, 0.88);
+  --os-bg-strong: rgba(250, 250, 250, 0.96);
+  --os-text: rgb(24, 24, 27);
+  --os-text-dim: rgba(24, 24, 27, 0.65);
+  --os-border: rgba(0, 0, 0, 0.12);
+  --os-hover: rgba(0, 0, 0, 0.06);
+  --os-active: rgba(0, 0, 0, 0.1);
+}
+
+/* Window mount animation — fires once per <Window> instance */
+@keyframes wm-pop-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.wm-pop-in {
+  animation: wm-pop-in 140ms ease-out;
+}

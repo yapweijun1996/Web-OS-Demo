@@ -27,7 +27,12 @@ export function Files() {
 
   if (!ready) {
     return (
-      <div className="p-5 text-xs text-white/60">Loading file system…</div>
+      <div
+        className="p-5 text-xs"
+        style={{ color: "var(--os-text-dim)" }}
+      >
+        Loading file system…
+      </div>
     );
   }
 
@@ -84,7 +89,13 @@ export function Files() {
   return (
     <div className="h-full flex flex-col text-sm">
       {/* toolbar */}
-      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-white/10 bg-white/5">
+      <div
+        className="flex items-center gap-1 px-2 py-1.5 border-b"
+        style={{
+          borderColor: "var(--os-border)",
+          background: "var(--os-hover)",
+        }}
+      >
         <button
           type="button"
           onClick={() => {
@@ -93,15 +104,18 @@ export function Files() {
             setSelected(null);
           }}
           disabled={!current}
-          className="w-7 h-7 grid place-items-center rounded hover:bg-white/10 disabled:opacity-30"
+          className="w-7 h-7 grid place-items-center rounded hover:bg-[var(--os-hover)] disabled:opacity-30"
           aria-label="Up"
         >
           <ChevronLeft size={14} />
         </button>
-        <div className="flex-1 flex items-center text-xs text-white/70 px-2 min-w-0 overflow-hidden">
+        <div
+          className="flex-1 flex items-center text-xs px-2 min-w-0 overflow-hidden"
+          style={{ color: "var(--os-text-dim)" }}
+        >
           {breadcrumb.map((b, i) => (
             <span key={b.id ?? "root"} className="flex items-center min-w-0">
-              {i > 0 && <span className="px-1 text-white/30">/</span>}
+              {i > 0 && <span className="px-1 opacity-40">/</span>}
               <button
                 type="button"
                 onClick={() => {
@@ -118,7 +132,7 @@ export function Files() {
         <button
           type="button"
           onClick={newFile}
-          className="px-2 h-7 flex items-center gap-1 rounded hover:bg-white/10 text-xs"
+          className="px-2 h-7 flex items-center gap-1 rounded hover:bg-[var(--os-hover)] text-xs"
           title="New file"
         >
           <FilePlus size={14} /> File
@@ -126,7 +140,7 @@ export function Files() {
         <button
           type="button"
           onClick={newFolder}
-          className="px-2 h-7 flex items-center gap-1 rounded hover:bg-white/10 text-xs"
+          className="px-2 h-7 flex items-center gap-1 rounded hover:bg-[var(--os-hover)] text-xs"
           title="New folder"
         >
           <FolderPlus size={14} /> Folder
@@ -145,7 +159,10 @@ export function Files() {
       {/* item list */}
       <div className="flex-1 overflow-auto p-1">
         {items.length === 0 ? (
-          <div className="p-6 text-center text-xs text-white/40">
+          <div
+            className="p-6 text-center text-xs"
+            style={{ color: "var(--os-text-dim)" }}
+          >
             (empty folder)
           </div>
         ) : (
@@ -159,18 +176,24 @@ export function Files() {
                 onClick={() => setSelected(n.id)}
                 onDoubleClick={() => open(n.id)}
                 className={`w-full flex items-center gap-2 px-2 py-1 rounded text-left text-sm ${
-                  isSelected ? "bg-white/15" : "hover:bg-white/10"
+                  isSelected
+                    ? "bg-[var(--os-active)]"
+                    : "hover:bg-[var(--os-hover)]"
                 }`}
               >
                 <Icon
                   size={16}
-                  className={
-                    n.type === "folder" ? "text-amber-300" : "text-white/70"
+                  className={n.type === "folder" ? "text-amber-500" : ""}
+                  style={
+                    n.type === "folder" ? undefined : { color: "var(--os-text-dim)" }
                   }
                 />
                 <span className="truncate flex-1">{n.name}</span>
                 {n.type === "file" && (
-                  <span className="text-[10px] text-white/40">
+                  <span
+                    className="text-[10px]"
+                    style={{ color: "var(--os-text-dim)" }}
+                  >
                     {n.content.length} chars
                   </span>
                 )}

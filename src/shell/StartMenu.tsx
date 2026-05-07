@@ -11,12 +11,24 @@ export function StartMenu() {
 
   return (
     <div
-      className="absolute left-2 w-72 max-h-[60vh] bg-zinc-900/95 backdrop-blur border border-white/10 rounded-md shadow-2xl overflow-hidden flex flex-col"
-      style={{ bottom: `${TASKBAR_H + 8}px`, zIndex: 10000 }}
+      className="absolute left-2 w-72 max-h-[60vh] backdrop-blur border rounded-md shadow-2xl overflow-hidden flex flex-col wm-pop-in"
+      style={{
+        bottom: `${TASKBAR_H + 8}px`,
+        zIndex: 10000,
+        background: "var(--os-bg-strong)",
+        color: "var(--os-text)",
+        borderColor: "var(--os-border)",
+      }}
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.stopPropagation()}
     >
-      <div className="px-4 py-3 text-xs font-medium text-white/60 uppercase tracking-wide border-b border-white/10">
+      <div
+        className="px-4 py-3 text-xs font-medium uppercase tracking-wide border-b"
+        style={{
+          color: "var(--os-text-dim)",
+          borderColor: "var(--os-border)",
+        }}
+      >
         All apps
       </div>
       <div className="overflow-auto p-1">
@@ -30,9 +42,9 @@ export function StartMenu() {
                 launchApp(app.id);
                 setStartMenu(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded text-left hover:bg-white/10 text-sm"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded text-left hover:bg-[var(--os-hover)] text-sm"
             >
-              <Icon size={20} className="text-white/80" />
+              <Icon size={20} style={{ color: "var(--os-text-dim)" }} />
               <span>{app.name}</span>
             </button>
           );

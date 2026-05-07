@@ -1,14 +1,50 @@
+import { Sun, Moon } from "lucide-react";
 import { useSettings, WALLPAPERS } from "../../os/settings";
 import { resetAndReload } from "../../os/persistence";
 
 export function Settings() {
   const wallpaper = useSettings((s) => s.wallpaper);
   const setWallpaper = useSettings((s) => s.setWallpaper);
+  const theme = useSettings((s) => s.theme);
+  const setTheme = useSettings((s) => s.setTheme);
 
   return (
     <div className="p-5 space-y-5 text-sm">
       <section>
-        <h3 className="text-xs uppercase tracking-wide text-white/60 mb-2">
+        <h3
+          className="text-xs uppercase tracking-wide mb-2"
+          style={{ color: "var(--os-text-dim)" }}
+        >
+          Theme
+        </h3>
+        <div className="flex gap-2">
+          {(["dark", "light"] as const).map((t) => {
+            const selected = theme === t;
+            const Icon = t === "dark" ? Moon : Sun;
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTheme(t)}
+                className={`flex-1 flex items-center justify-center gap-2 h-10 rounded border-2 capitalize ${
+                  selected
+                    ? "border-white"
+                    : "border-transparent hover:bg-[var(--os-hover)]"
+                }`}
+                style={{ background: selected ? "var(--os-active)" : "transparent" }}
+              >
+                <Icon size={14} /> {t}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section>
+        <h3
+          className="text-xs uppercase tracking-wide mb-2"
+          style={{ color: "var(--os-text-dim)" }}
+        >
           Wallpaper
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -23,7 +59,7 @@ export function Settings() {
                   selected
                     ? "border-white shadow-lg"
                     : "border-white/10 hover:border-white/40"
-                } transition-colors text-left p-2 text-xs font-medium`}
+                } transition-colors text-left p-2 text-xs font-medium text-white`}
               >
                 {w.name}
               </button>
@@ -33,7 +69,25 @@ export function Settings() {
       </section>
 
       <section>
-        <h3 className="text-xs uppercase tracking-wide text-white/60 mb-2">
+        <h3
+          className="text-xs uppercase tracking-wide mb-2"
+          style={{ color: "var(--os-text-dim)" }}
+        >
+          Shortcuts
+        </h3>
+        <ul className="text-xs space-y-1" style={{ color: "var(--os-text-dim)" }}>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">Cmd/Ctrl + K</kbd> — toggle Start menu</li>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">Cmd/Ctrl + W</kbd> — close focused window</li>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">Esc</kbd> — dismiss menus</li>
+          <li>Right-click desktop · double-click titlebar to maximize</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3
+          className="text-xs uppercase tracking-wide mb-2"
+          style={{ color: "var(--os-text-dim)" }}
+        >
           Storage
         </h3>
         <button

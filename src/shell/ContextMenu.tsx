@@ -11,8 +11,15 @@ export function ContextMenu() {
 
   return (
     <div
-      className="absolute bg-zinc-900/95 backdrop-blur border border-white/10 rounded shadow-2xl py-1 text-sm min-w-[180px]"
-      style={{ left: x, top: y, zIndex: 10001 }}
+      className="absolute backdrop-blur border rounded shadow-2xl py-1 text-sm min-w-[180px] wm-pop-in"
+      style={{
+        left: x,
+        top: y,
+        zIndex: 10001,
+        background: "var(--os-bg-strong)",
+        color: "var(--os-text)",
+        borderColor: "var(--os-border)",
+      }}
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -27,7 +34,7 @@ export function ContextMenu() {
             item.onClick();
             close();
           }}
-          className="w-full text-left px-3 py-1.5 hover:bg-white/10"
+          className="w-full text-left px-3 py-1.5 hover:bg-[var(--os-hover)]"
         >
           {item.label}
         </button>

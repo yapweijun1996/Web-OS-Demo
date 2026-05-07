@@ -37,11 +37,17 @@ export function Window({ w }: { w: WindowState }) {
       enableResizing={!w.maximized}
     >
       <div
-        className="w-full h-full flex flex-col bg-zinc-900/95 text-white border border-white/10 rounded-md shadow-2xl backdrop-blur overflow-hidden"
+        className="w-full h-full flex flex-col rounded-md shadow-2xl backdrop-blur overflow-hidden border wm-pop-in"
+        style={{
+          background: "var(--os-bg-strong)",
+          color: "var(--os-text)",
+          borderColor: "var(--os-border)",
+        }}
         onMouseDown={() => focus(w.id)}
       >
         <div
-          className="wm-titlebar h-9 flex items-center pl-3 pr-1 select-none cursor-grab active:cursor-grabbing border-b border-white/10 bg-white/5"
+          className="wm-titlebar h-9 flex items-center pl-3 pr-1 select-none cursor-grab active:cursor-grabbing border-b"
+          style={{ borderColor: "var(--os-border)" }}
           onDoubleClick={() => toggleMaximize(w.id)}
         >
           <span className="text-sm font-medium truncate flex-1">
@@ -52,7 +58,7 @@ export function Window({ w }: { w: WindowState }) {
               type="button"
               onClick={() => minimize(w.id)}
               aria-label="Minimize"
-              className="w-7 h-7 grid place-items-center rounded hover:bg-white/10"
+              className="w-7 h-7 grid place-items-center rounded hover:bg-[var(--os-hover)]"
             >
               <Minus size={14} />
             </button>
@@ -60,7 +66,7 @@ export function Window({ w }: { w: WindowState }) {
               type="button"
               onClick={() => toggleMaximize(w.id)}
               aria-label="Maximize"
-              className="w-7 h-7 grid place-items-center rounded hover:bg-white/10"
+              className="w-7 h-7 grid place-items-center rounded hover:bg-[var(--os-hover)]"
             >
               <Square size={12} />
             </button>
@@ -74,7 +80,7 @@ export function Window({ w }: { w: WindowState }) {
             </button>
           </div>
         </div>
-        <div className="flex-1 overflow-auto bg-zinc-950/40">
+        <div className="flex-1 overflow-auto">
           <Body windowId={w.id} />
         </div>
       </div>

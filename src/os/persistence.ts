@@ -1,5 +1,10 @@
 import { useWindows } from "./store";
-import { useSettings, WALLPAPERS, type WallpaperId } from "./settings";
+import {
+  useSettings,
+  WALLPAPERS,
+  type WallpaperId,
+  type Theme,
+} from "./settings";
 import { APPS } from "./apps";
 import type { WindowState } from "./types";
 
@@ -11,6 +16,7 @@ type Persisted = {
   windows: WindowState[];
   nextZ: number;
   wallpaper: WallpaperId;
+  theme?: Theme;
 };
 
 function read(): Persisted | null {
@@ -50,6 +56,9 @@ export function hydrate(): void {
   if (WALLPAPERS.some((w) => w.id === data.wallpaper)) {
     useSettings.setState({ wallpaper: data.wallpaper });
   }
+  if (data.theme === "dark" || data.theme === "light") {
+    useSettings.setState({ theme: data.theme });
+  }
 }
 
 /**
@@ -68,6 +77,7 @@ export function startAutosave(debounceMs = 300): () => void {
       windows: w.windows,
       nextZ: w.nextZ,
       wallpaper: s.wallpaper,
+      theme: s.theme,
     });
   };
 
