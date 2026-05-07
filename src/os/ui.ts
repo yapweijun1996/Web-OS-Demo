@@ -6,25 +6,49 @@ export type ContextMenuItem = {
 };
 
 type UIStore = {
-  startMenuOpen: boolean;
+  spotlightOpen: boolean;
+  appSwitcherOpen: boolean;
+  appSwitcherIdx: number;
   contextMenu: { x: number; y: number; items: ContextMenuItem[] } | null;
 
-  toggleStartMenu: () => void;
-  setStartMenu: (open: boolean) => void;
+  toggleSpotlight: () => void;
+  setSpotlight: (open: boolean) => void;
+  openAppSwitcher: () => void;
+  cycleAppSwitcher: (delta: number) => void;
+  commitAppSwitcher: () => void; // closes; consumer reads idx + windows snapshot to focus
+  cancelAppSwitcher: () => void;
   openContextMenu: (x: number, y: number, items: ContextMenuItem[]) => void;
   closeContextMenu: () => void;
   closeAll: () => void;
 };
 
 export const useUI = create<UIStore>((set) => ({
-  startMenuOpen: false,
+  spotlightOpen: false,
+  appSwitcherOpen: false,
+  appSwitcherIdx: 0,
   contextMenu: null,
 
-  toggleStartMenu: () =>
-    set((s) => ({ startMenuOpen: !s.startMenuOpen, contextMenu: null })),
-  setStartMenu: (open) => set({ startMenuOpen: open }),
+  toggleSpotlight: () =>
+    set((s) => ({
+      spotlightOpen: !s.spotlightOpen,
+      contextMenu: null,
+    })),
+  setSpotlight: (open) => set({ spotlightOpen: open }),
+  openAppSwitcher: () =>
+    set({ appSwitcherOpen: true, appSwitcherIdx: 1 }),
+  cycleAppSwitcher: (delta) =>
+    set((s) => ({ appSwitcherIdx: s.appSwitcherIdx + delta })),
+  commitAppSwitcher: () =>
+    set({ appSwitcherOpen: false, appSwitcherIdx: 0 }),
+  cancelAppSwitcher: () =>
+    set({ appSwitcherOpen: false, appSwitcherIdx: 0 }),
   openContextMenu: (x, y, items) =>
-    set({ contextMenu: { x, y, items }, startMenuOpen: false }),
+    set({ contextMenu: { x, y, items }, spotlightOpen: false }),
   closeContextMenu: () => set({ contextMenu: null }),
-  closeAll: () => set({ startMenuOpen: false, contextMenu: null }),
+  closeAll: () =>
+    set({
+      spotlightOpen: false,
+      contextMenu: null,
+      appSwitcherOpen: false,
+    }),
 }));

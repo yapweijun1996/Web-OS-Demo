@@ -80,10 +80,11 @@ export function Settings() {
           Shortcuts
         </h3>
         <ul className="text-xs space-y-1" style={{ color: "var(--os-text-dim)" }}>
-          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">Cmd/Ctrl + K</kbd> — toggle Start menu</li>
-          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">Cmd/Ctrl + W</kbd> — close focused window</li>
-          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">Esc</kbd> — dismiss menus</li>
-          <li>Right-click desktop · double-click titlebar to maximize</li>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">⌘ + K</kbd> or <kbd className="px-1 rounded bg-[var(--os-hover)]">⌘ + Space</kbd> — Spotlight search</li>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">⌘ + Tab</kbd> — switch windows (hold ⇧ to reverse)</li>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">⌘ + W</kbd> — close focused window</li>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">⌃⌘ + ←/→</kbd> — snap window to half · <kbd className="px-1 rounded bg-[var(--os-hover)]">↑</kbd> maximize</li>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">Esc</kbd> — dismiss menus / cancel switcher</li>
         </ul>
       </section>
 

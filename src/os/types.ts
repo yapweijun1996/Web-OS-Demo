@@ -2,6 +2,8 @@ import type { ComponentType, CSSProperties } from "react";
 
 export type WindowId = string;
 
+export type SnapSide = "left" | "right";
+
 export type WindowState = {
   id: WindowId;
   appId: string;
@@ -13,6 +15,7 @@ export type WindowState = {
   z: number;
   minimized: boolean;
   maximized: boolean;
+  snap?: SnapSide;
   prev?: { x: number; y: number; width: number; height: number };
   /**
    * App-specific JSON-serializable data passed at launch and persisted with

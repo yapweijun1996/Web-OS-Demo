@@ -1,10 +1,16 @@
 import { useEffect } from "react";
 import { Desktop } from "./shell/Desktop";
-import { Taskbar } from "./shell/Taskbar";
-import { StartMenu } from "./shell/StartMenu";
+import { MenuBar } from "./shell/MenuBar";
+import { Dock } from "./shell/Dock";
+import { Spotlight } from "./shell/Spotlight";
+import { AppSwitcher } from "./shell/AppSwitcher";
 import { ContextMenu } from "./shell/ContextMenu";
 import { WindowHost } from "./shell/WindowHost";
-import { TASKBAR_H, useWindows } from "./os/store";
+import {
+  TOP_INSET,
+  BOTTOM_INSET,
+  useWindows,
+} from "./os/store";
 import { useUI } from "./os/ui";
 import { useSettings, wallpaperClasses } from "./os/settings";
 import { startAutosave } from "./os/persistence";
@@ -24,31 +30,96 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
+    const ui = useUI;
+    const ws = useWindows;
+
+    const focusedVisible = () => {
+      const v = ws.getState().windows.filter((w) => !w.minimized);
+      if (!v.length) return null;
+      return v.reduce((a, b) => (a.z > b.z ? a : b));
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const meta = e.metaKey || e.ctrlKey;
+
+      // ESC closes overlays
       if (e.key === "Escape") {
-        closeAll();
+        if (ui.getState().appSwitcherOpen) ui.getState().cancelAppSwitcher();
+        else closeAll();
         return;
       }
-      const meta = e.metaKey || e.ctrlKey;
-      if (!meta) return;
 
-      // Cmd/Ctrl+W → close focused window
-      if (e.key.toLowerCase() === "w") {
-        const ws = useWindows.getState();
-        const visible = ws.windows.filter((w) => !w.minimized);
-        if (visible.length === 0) return;
+      // Cmd/Ctrl+Space or Cmd/Ctrl+K → toggle Spotlight
+      if (meta && (e.key === " " || e.key.toLowerCase() === "k")) {
         e.preventDefault();
-        const focused = visible.reduce((a, b) => (a.z > b.z ? a : b));
-        ws.close(focused.id);
+        ui.getState().toggleSpotlight();
+        return;
       }
-      // Cmd/Ctrl+K → toggle start menu (Cmd+P collides with browser print)
-      if (e.key.toLowerCase() === "k") {
+
+      // Cmd/Ctrl+W → close focused window (skip if Spotlight focused)
+      if (meta && e.key.toLowerCase() === "w" && !ui.getState().spotlightOpen) {
+        const w = focusedVisible();
+        if (w) {
+          e.preventDefault();
+          ws.getState().close(w.id);
+        }
+        return;
+      }
+
+      // Cmd/Ctrl+Tab → cycle App Switcher
+      if (meta && e.key === "Tab") {
         e.preventDefault();
-        useUI.getState().toggleStartMenu();
+        if (!ui.getState().appSwitcherOpen) {
+          ui.getState().openAppSwitcher();
+        } else {
+          ui.getState().cycleAppSwitcher(e.shiftKey ? -1 : 1);
+        }
+        return;
+      }
+
+      // Tiling: Ctrl+Cmd+arrows
+      if (e.metaKey && e.ctrlKey) {
+        const w = focusedVisible();
+        if (!w) return;
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          ws.getState().snapTo(w.id, "left");
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault();
+          ws.getState().snapTo(w.id, "right");
+        } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+          e.preventDefault();
+          ws.getState().toggleMaximize(w.id);
+        }
+        return;
       }
     };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      // Releasing Cmd/Ctrl while AppSwitcher is open → commit
+      if (
+        ui.getState().appSwitcherOpen &&
+        (e.key === "Meta" || e.key === "Control")
+      ) {
+        const ws_ = ws.getState();
+        const sorted = [...ws_.windows].sort((a, b) => b.z - a.z);
+        if (sorted.length > 0) {
+          const idx = ui.getState().appSwitcherIdx;
+          const wrapped = ((idx % sorted.length) + sorted.length) % sorted.length;
+          const target = sorted[wrapped];
+          if (target.minimized) ws_.toggleMinimize(target.id);
+          ws_.focus(target.id);
+        }
+        ui.getState().commitAppSwitcher();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("keyup", onKeyUp);
+    };
   }, [closeAll]);
 
   return (
@@ -58,25 +129,31 @@ export default function App() {
     >
       {/* Desktop layer (icons + right-click target) */}
       <div
-        className="absolute left-0 right-0 top-0"
-        style={{ bottom: `${TASKBAR_H}px` }}
+        className="absolute left-0 right-0"
+        style={{
+          top: `${TOP_INSET}px`,
+          bottom: `${BOTTOM_INSET}px`,
+        }}
       >
         <Desktop />
       </div>
 
-      {/* Window layer (wrapper is pointer-events-none so empty areas pass clicks
-          through to the Desktop layer beneath; individual <Window> elements
-          re-enable pointer events on themselves) */}
+      {/* Window layer */}
       <div
-        className="absolute left-0 right-0 top-0 pointer-events-none"
-        style={{ bottom: `${TASKBAR_H}px` }}
+        className="absolute left-0 right-0 pointer-events-none"
+        style={{
+          top: `${TOP_INSET}px`,
+          bottom: `${BOTTOM_INSET}px`,
+        }}
       >
         <WindowHost />
       </div>
 
       {/* OS chrome */}
-      <Taskbar />
-      <StartMenu />
+      <MenuBar />
+      <Dock />
+      <Spotlight />
+      <AppSwitcher />
       <ContextMenu />
     </div>
   );

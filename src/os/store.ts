@@ -1,8 +1,21 @@
 import { create } from "zustand";
-import type { WindowState, WindowId } from "./types";
+import type { WindowState, WindowId, SnapSide } from "./types";
 
-export const TASKBAR_H = 48;
+// Mac-style layout: thin top menu bar + floating bottom dock.
+export const MENU_BAR_H = 28;
+export const DOCK_H = 64;
+export const DOCK_MARGIN = 12;
+export const TOP_INSET = MENU_BAR_H;
+export const BOTTOM_INSET = DOCK_H + DOCK_MARGIN * 2;
+
 const Z_NORMALIZE_THRESHOLD = 100_000;
+
+const workspaceWidth = () =>
+  typeof window === "undefined" ? 1280 : window.innerWidth;
+const workspaceHeight = () =>
+  typeof window === "undefined"
+    ? 720 - TOP_INSET - BOTTOM_INSET
+    : window.innerHeight - TOP_INSET - BOTTOM_INSET;
 
 let counter = 0;
 const newId = () =>
@@ -28,6 +41,7 @@ type WindowStore = {
   minimize: (id: WindowId) => void;
   toggleMinimize: (id: WindowId) => void;
   toggleMaximize: (id: WindowId) => void;
+  snapTo: (id: WindowId, side: SnapSide) => void;
   setTitle: (id: WindowId, title: string) => void;
 };
 
@@ -95,7 +109,7 @@ export const useWindows = create<WindowStore>((set, get) => ({
   toggleMaximize: (id) => {
     const w = get().windows.find((ww) => ww.id === id);
     if (!w) return;
-    if (w.maximized && w.prev) {
+    if ((w.maximized || w.snap) && w.prev) {
       const prev = w.prev;
       set({
         windows: get().windows.map((ww) =>
@@ -107,6 +121,7 @@ export const useWindows = create<WindowStore>((set, get) => ({
                 width: prev.width,
                 height: prev.height,
                 maximized: false,
+                snap: undefined,
                 prev: undefined,
               }
             : ww,
@@ -126,14 +141,53 @@ export const useWindows = create<WindowStore>((set, get) => ({
                 },
                 x: 0,
                 y: 0,
-                width: window.innerWidth,
-                height: window.innerHeight - TASKBAR_H,
+                width: workspaceWidth(),
+                height: workspaceHeight(),
                 maximized: true,
+                snap: undefined,
               }
             : ww,
         ),
       });
     }
+  },
+
+  snapTo: (id, side) => {
+    const w = get().windows.find((ww) => ww.id === id);
+    if (!w) return;
+    // If already snapped to the same side → restore.
+    if (w.snap === side && w.prev) {
+      get().toggleMaximize(id); // reuses restore-from-prev path
+      return;
+    }
+    const W = workspaceWidth();
+    const H = workspaceHeight();
+    const halfW = Math.floor(W / 2);
+    const targetX = side === "left" ? 0 : halfW;
+    set({
+      windows: get().windows.map((ww) =>
+        ww.id === id
+          ? {
+              ...ww,
+              prev:
+                ww.snap || ww.maximized
+                  ? ww.prev
+                  : {
+                      x: ww.x,
+                      y: ww.y,
+                      width: ww.width,
+                      height: ww.height,
+                    },
+              x: targetX,
+              y: 0,
+              width: halfW,
+              height: H,
+              maximized: false,
+              snap: side,
+            }
+          : ww,
+      ),
+    });
   },
 
   setTitle: (id, title) =>
