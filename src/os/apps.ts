@@ -5,12 +5,14 @@ import {
   Info,
   Settings as SettingsIcon,
   FolderOpen,
+  Globe,
 } from "lucide-react";
 import { Notes } from "../apps/notes/Notes";
 import { Calc } from "../apps/calc/Calc";
 import { About } from "../apps/about/About";
 import { Settings } from "../apps/settings/Settings";
 import { Files } from "../apps/files/Files";
+import { Browser } from "../apps/browser/Browser";
 
 export const APPS: Record<string, AppDef> = {
   files: {
@@ -19,6 +21,13 @@ export const APPS: Record<string, AppDef> = {
     icon: FolderOpen,
     defaultSize: { width: 540, height: 400 },
     Component: Files,
+  },
+  browser: {
+    id: "browser",
+    name: "Browser",
+    icon: Globe,
+    defaultSize: { width: 900, height: 620 },
+    Component: Browser,
   },
   notes: {
     id: "notes",
