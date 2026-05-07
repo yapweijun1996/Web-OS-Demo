@@ -4,20 +4,29 @@ import {
   Calculator as CalcIcon,
   Info,
   Settings as SettingsIcon,
+  FolderOpen,
 } from "lucide-react";
 import { Notes } from "../apps/notes/Notes";
 import { Calc } from "../apps/calc/Calc";
 import { About } from "../apps/about/About";
 import { Settings } from "../apps/settings/Settings";
+import { Files } from "../apps/files/Files";
 
 export const APPS: Record<string, AppDef> = {
+  files: {
+    id: "files",
+    name: "Files",
+    icon: FolderOpen,
+    defaultSize: { width: 540, height: 400 },
+    Component: Files,
+  },
   notes: {
     id: "notes",
     name: "Notes",
     icon: StickyNote,
     defaultSize: { width: 480, height: 360 },
     Component: Notes,
-    singleton: true,
+    // not singleton — multiple files may be open at once
   },
   calc: {
     id: "calc",

@@ -2,7 +2,10 @@ import { useWindows } from "./store";
 import { APPS } from "./apps";
 import type { WindowId } from "./types";
 
-export function launchApp(appId: string): WindowId | null {
+export function launchApp(
+  appId: string,
+  opts?: { title?: string; appData?: Record<string, unknown> },
+): WindowId | null {
   const app = APPS[appId];
   if (!app) return null;
   const s = useWindows.getState();
@@ -19,12 +22,13 @@ export function launchApp(appId: string): WindowId | null {
   const offset = (s.windows.length % 8) * 28;
   return s.open({
     appId,
-    title: app.name,
+    title: opts?.title ?? app.name,
     x: 80 + offset,
     y: 60 + offset,
     width: app.defaultSize.width,
     height: app.defaultSize.height,
     minimized: false,
     maximized: false,
+    appData: opts?.appData,
   });
 }

@@ -14,6 +14,11 @@ export type WindowState = {
   minimized: boolean;
   maximized: boolean;
   prev?: { x: number; y: number; width: number; height: number };
+  /**
+   * App-specific JSON-serializable data passed at launch and persisted with
+   * the window. Used e.g. by Notes to remember which file is open.
+   */
+  appData?: Record<string, unknown>;
 };
 
 export type AppIconProps = { size?: number; className?: string };
