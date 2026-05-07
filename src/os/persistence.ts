@@ -1,4 +1,4 @@
-import { useWindows } from "./store";
+import { useWindows, DEFAULT_SPACE_ID } from "./store";
 import {
   useSettings,
   WALLPAPERS,
@@ -6,10 +6,10 @@ import {
   type Theme,
 } from "./settings";
 import { APPS } from "./apps";
-import type { WindowState } from "./types";
+import type { WindowState, Space, SpaceId } from "./types";
 
 const STORAGE_KEY = "webos:state";
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 type Persisted = {
   version: number;
@@ -17,6 +17,8 @@ type Persisted = {
   nextZ: number;
   wallpaper: WallpaperId;
   theme?: Theme;
+  spaces?: Space[];
+  activeSpaceId?: SpaceId;
 };
 
 function read(): Persisted | null {
@@ -24,6 +26,16 @@ function read(): Persisted | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Persisted;
+    // Forward-migrate v1 → v2: backfill spaceId on windows + default space.
+    if (parsed.version === 1) {
+      parsed.windows = parsed.windows.map((w) => ({
+        ...w,
+        spaceId: w.spaceId ?? DEFAULT_SPACE_ID,
+      }));
+      parsed.spaces = [{ id: DEFAULT_SPACE_ID, name: "Desktop 1" }];
+      parsed.activeSpaceId = DEFAULT_SPACE_ID;
+      parsed.version = SCHEMA_VERSION;
+    }
     if (parsed.version !== SCHEMA_VERSION) return null;
     return parsed;
   } catch {
@@ -48,9 +60,27 @@ export function hydrate(): void {
   if (!data) return;
 
   const validWindows = data.windows.filter((w) => APPS[w.appId]);
+  const spaces =
+    data.spaces && data.spaces.length > 0
+      ? data.spaces
+      : [{ id: DEFAULT_SPACE_ID, name: "Desktop 1" }];
+  const activeSpaceId =
+    data.activeSpaceId && spaces.some((s) => s.id === data.activeSpaceId)
+      ? data.activeSpaceId
+      : spaces[0].id;
+  // Defensive: any window referencing a deleted space → fall back to first
+  const validSpaceIds = new Set(spaces.map((s) => s.id));
+  const reassignedWindows = validWindows.map((w) =>
+    validSpaceIds.has(w.spaceId)
+      ? w
+      : { ...w, spaceId: spaces[0].id },
+  );
   useWindows.setState({
-    windows: validWindows,
-    nextZ: Math.max(data.nextZ, ...validWindows.map((w) => w.z), 0) + 1,
+    windows: reassignedWindows,
+    nextZ:
+      Math.max(data.nextZ, ...reassignedWindows.map((w) => w.z), 0) + 1,
+    spaces,
+    activeSpaceId,
   });
 
   if (WALLPAPERS.some((w) => w.id === data.wallpaper)) {
@@ -78,6 +108,8 @@ export function startAutosave(debounceMs = 300): () => void {
       nextZ: w.nextZ,
       wallpaper: s.wallpaper,
       theme: s.theme,
+      spaces: w.spaces,
+      activeSpaceId: w.activeSpaceId,
     });
   };
 

@@ -84,6 +84,8 @@ export function Settings() {
           <li><kbd className="px-1 rounded bg-[var(--os-hover)]">⌘ + Tab</kbd> — switch windows (hold ⇧ to reverse)</li>
           <li><kbd className="px-1 rounded bg-[var(--os-hover)]">⌘ + W</kbd> — close focused window</li>
           <li><kbd className="px-1 rounded bg-[var(--os-hover)]">⌃⌘ + ←/→</kbd> — snap window to half · <kbd className="px-1 rounded bg-[var(--os-hover)]">↑</kbd> maximize</li>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">⌃ + ↑</kbd> or <kbd className="px-1 rounded bg-[var(--os-hover)]">F3</kbd> — Mission Control (overview)</li>
+          <li><kbd className="px-1 rounded bg-[var(--os-hover)]">⌃ + ←/→</kbd> — cycle Spaces · <kbd className="px-1 rounded bg-[var(--os-hover)]">⌃ + 1..9</kbd> — jump to Space N</li>
           <li><kbd className="px-1 rounded bg-[var(--os-hover)]">Esc</kbd> — dismiss menus / cancel switcher</li>
         </ul>
       </section>

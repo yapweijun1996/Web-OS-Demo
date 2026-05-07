@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import type { WindowState, WindowId, SnapSide } from "./types";
+import type {
+  WindowState,
+  WindowId,
+  SnapSide,
+  Space,
+  SpaceId,
+} from "./types";
 
 // Mac-style layout: thin top menu bar + floating bottom dock.
 export const MENU_BAR_H = 28;
@@ -10,9 +16,11 @@ export const BOTTOM_INSET = DOCK_H + DOCK_MARGIN * 2;
 
 const Z_NORMALIZE_THRESHOLD = 100_000;
 
-const workspaceWidth = () =>
+export const DEFAULT_SPACE_ID = "default";
+
+export const workspaceWidth = () =>
   typeof window === "undefined" ? 1280 : window.innerWidth;
-const workspaceHeight = () =>
+export const workspaceHeight = () =>
   typeof window === "undefined"
     ? 720 - TOP_INSET - BOTTOM_INSET
     : window.innerHeight - TOP_INSET - BOTTOM_INSET;
@@ -21,11 +29,15 @@ let counter = 0;
 const newId = () =>
   `w${Date.now().toString(36)}-${(++counter).toString(36)}`;
 
-type NewWindow = Omit<WindowState, "id" | "z">;
+type NewWindow = Omit<WindowState, "id" | "z" | "spaceId"> & {
+  spaceId?: SpaceId;
+};
 
 type WindowStore = {
   windows: WindowState[];
   nextZ: number;
+  spaces: Space[];
+  activeSpaceId: SpaceId;
 
   open: (w: NewWindow) => WindowId;
   close: (id: WindowId) => void;
@@ -43,17 +55,27 @@ type WindowStore = {
   toggleMaximize: (id: WindowId) => void;
   snapTo: (id: WindowId, side: SnapSide) => void;
   setTitle: (id: WindowId, title: string) => void;
+
+  addSpace: () => SpaceId;
+  removeSpace: (id: SpaceId) => void;
+  switchSpace: (id: SpaceId) => void;
+  cycleSpace: (delta: number) => void;
+  moveWindowToSpace: (windowId: WindowId, spaceId: SpaceId) => void;
+  renameSpace: (id: SpaceId, name: string) => void;
 };
 
 export const useWindows = create<WindowStore>((set, get) => ({
   windows: [],
   nextZ: 1,
+  spaces: [{ id: DEFAULT_SPACE_ID, name: "Desktop 1" }],
+  activeSpaceId: DEFAULT_SPACE_ID,
 
   open: (w) => {
     const id = newId();
     const z = get().nextZ + 1;
+    const spaceId = w.spaceId ?? get().activeSpaceId;
     set({
-      windows: [...get().windows, { ...w, id, z }],
+      windows: [...get().windows, { ...w, id, z, spaceId }],
       nextZ: z,
     });
     return id;
@@ -196,4 +218,57 @@ export const useWindows = create<WindowStore>((set, get) => ({
         w.id === id ? { ...w, title } : w,
       ),
     }),
+
+  addSpace: () => {
+    const idx = get().spaces.length + 1;
+    const id = `space-${Date.now().toString(36)}`;
+    const space: Space = { id, name: `Desktop ${idx}` };
+    set({ spaces: [...get().spaces, space], activeSpaceId: id });
+    return id;
+  },
+
+  removeSpace: (id) => {
+    const spaces = get().spaces;
+    if (spaces.length <= 1) return; // never remove the last space
+    const remaining = spaces.filter((s) => s.id !== id);
+    const fallback = remaining[0].id;
+    set({
+      spaces: remaining,
+      // reassign windows from removed space → fallback (don't lose them)
+      windows: get().windows.map((w) =>
+        w.spaceId === id ? { ...w, spaceId: fallback } : w,
+      ),
+      activeSpaceId:
+        get().activeSpaceId === id ? fallback : get().activeSpaceId,
+    });
+  },
+
+  switchSpace: (id) => {
+    if (!get().spaces.some((s) => s.id === id)) return;
+    set({ activeSpaceId: id });
+  },
+
+  cycleSpace: (delta) => {
+    const spaces = get().spaces;
+    const idx = spaces.findIndex((s) => s.id === get().activeSpaceId);
+    if (idx === -1) return;
+    const next =
+      ((idx + delta) % spaces.length + spaces.length) % spaces.length;
+    set({ activeSpaceId: spaces[next].id });
+  },
+
+  moveWindowToSpace: (windowId, spaceId) => {
+    if (!get().spaces.some((s) => s.id === spaceId)) return;
+    set({
+      windows: get().windows.map((w) =>
+        w.id === windowId ? { ...w, spaceId } : w,
+      ),
+    });
+  },
+
+  renameSpace: (id, name) => {
+    set({
+      spaces: get().spaces.map((s) => (s.id === id ? { ...s, name } : s)),
+    });
+  },
 }));

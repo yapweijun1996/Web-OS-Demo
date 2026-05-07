@@ -4,6 +4,7 @@ import { MenuBar } from "./shell/MenuBar";
 import { Dock } from "./shell/Dock";
 import { Spotlight } from "./shell/Spotlight";
 import { AppSwitcher } from "./shell/AppSwitcher";
+import { MissionControl } from "./shell/MissionControl";
 import { ContextMenu } from "./shell/ContextMenu";
 import { WindowHost } from "./shell/WindowHost";
 import {
@@ -42,10 +43,67 @@ export default function App() {
     const onKeyDown = (e: KeyboardEvent) => {
       const meta = e.metaKey || e.ctrlKey;
 
-      // ESC closes overlays
+      // ESC closes overlays (priority order)
       if (e.key === "Escape") {
         if (ui.getState().appSwitcherOpen) ui.getState().cancelAppSwitcher();
         else closeAll();
+        return;
+      }
+
+      // F3 or Ctrl+Up → toggle Mission Control
+      if (e.key === "F3") {
+        e.preventDefault();
+        ui.getState().toggleMissionControl();
+        return;
+      }
+
+      // Tiling: Ctrl+Cmd+arrows  (must check BEFORE plain Ctrl+arrow space switch)
+      if (e.metaKey && e.ctrlKey) {
+        const w = focusedVisible();
+        if (e.key === "ArrowLeft" && w) {
+          e.preventDefault();
+          ws.getState().snapTo(w.id, "left");
+          return;
+        }
+        if (e.key === "ArrowRight" && w) {
+          e.preventDefault();
+          ws.getState().snapTo(w.id, "right");
+          return;
+        }
+        if ((e.key === "ArrowUp" || e.key === "ArrowDown") && w) {
+          e.preventDefault();
+          ws.getState().toggleMaximize(w.id);
+          return;
+        }
+      }
+
+      // Ctrl+Up → Mission Control (Mac convention)
+      if (e.ctrlKey && !e.metaKey && e.key === "ArrowUp") {
+        e.preventDefault();
+        ui.getState().toggleMissionControl();
+        return;
+      }
+
+      // Ctrl+Left / Ctrl+Right → cycle Spaces
+      if (e.ctrlKey && !e.metaKey && e.key === "ArrowLeft") {
+        e.preventDefault();
+        ws.getState().cycleSpace(-1);
+        return;
+      }
+      if (e.ctrlKey && !e.metaKey && e.key === "ArrowRight") {
+        e.preventDefault();
+        ws.getState().cycleSpace(1);
+        return;
+      }
+
+      // Ctrl+1..9 → jump to space N (Mac convention; doesn't interfere with browser)
+      if (e.ctrlKey && !e.metaKey && /^[1-9]$/.test(e.key)) {
+        const n = parseInt(e.key, 10);
+        const spaces = ws.getState().spaces;
+        if (n <= spaces.length) {
+          e.preventDefault();
+          ws.getState().switchSpace(spaces[n - 1].id);
+        }
         return;
       }
 
@@ -73,23 +131,6 @@ export default function App() {
           ui.getState().openAppSwitcher();
         } else {
           ui.getState().cycleAppSwitcher(e.shiftKey ? -1 : 1);
-        }
-        return;
-      }
-
-      // Tiling: Ctrl+Cmd+arrows
-      if (e.metaKey && e.ctrlKey) {
-        const w = focusedVisible();
-        if (!w) return;
-        if (e.key === "ArrowLeft") {
-          e.preventDefault();
-          ws.getState().snapTo(w.id, "left");
-        } else if (e.key === "ArrowRight") {
-          e.preventDefault();
-          ws.getState().snapTo(w.id, "right");
-        } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-          e.preventDefault();
-          ws.getState().toggleMaximize(w.id);
         }
         return;
       }
@@ -154,6 +195,7 @@ export default function App() {
       <Dock />
       <Spotlight />
       <AppSwitcher />
+      <MissionControl />
       <ContextMenu />
     </div>
   );

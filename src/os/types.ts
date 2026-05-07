@@ -4,6 +4,13 @@ export type WindowId = string;
 
 export type SnapSide = "left" | "right";
 
+export type SpaceId = string;
+
+export type Space = {
+  id: SpaceId;
+  name: string;
+};
+
 export type WindowState = {
   id: WindowId;
   appId: string;
@@ -17,6 +24,11 @@ export type WindowState = {
   maximized: boolean;
   snap?: SnapSide;
   prev?: { x: number; y: number; width: number; height: number };
+  /**
+   * Which virtual desktop (space) this window lives on. Filtered by
+   * WindowHost + Dock so each space is visually independent.
+   */
+  spaceId: SpaceId;
   /**
    * App-specific JSON-serializable data passed at launch and persisted with
    * the window. Used e.g. by Notes to remember which file is open.

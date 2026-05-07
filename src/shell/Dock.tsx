@@ -9,13 +9,18 @@ export function Dock() {
   const toggleMinimize = useWindows((s) => s.toggleMinimize);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
+  const activeSpaceId = useWindows((s) => s.activeSpaceId);
+
   const handleClick = (appId: string) => {
-    const instances = windows.filter((w) => w.appId === appId);
+    // Only consider instances on the active space — Mac dock indicator
+    // also shows per-space.
+    const instances = windows.filter(
+      (w) => w.appId === appId && w.spaceId === activeSpaceId,
+    );
     if (instances.length === 0) {
       launchApp(appId);
       return;
     }
-    // Bring most recent (highest z) to front; restore from minimized.
     const top = instances.reduce((a, b) => (a.z > b.z ? a : b));
     if (top.minimized) toggleMinimize(top.id);
     focus(top.id);
@@ -40,7 +45,9 @@ export function Dock() {
         const scale =
           hoverIdx === null ? 1 : Math.max(1, 1.55 - distance * 0.22);
         const offset = hoverIdx === null ? 0 : Math.max(0, 6 - distance * 2);
-        const hasInstance = windows.some((w) => w.appId === app.id);
+        const hasInstance = windows.some(
+          (w) => w.appId === app.id && w.spaceId === activeSpaceId,
+        );
         return (
           <button
             key={app.id}

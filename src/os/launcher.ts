@@ -19,7 +19,11 @@ export function launchApp(
     }
   }
 
-  const offset = (s.windows.length % 8) * 28;
+  // count only windows on the active space for cascade offset
+  const activeWindowCount = s.windows.filter(
+    (w) => w.spaceId === s.activeSpaceId,
+  ).length;
+  const offset = (activeWindowCount % 8) * 28;
   return s.open({
     appId,
     title: opts?.title ?? app.name,
