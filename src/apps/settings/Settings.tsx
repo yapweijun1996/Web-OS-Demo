@@ -1,12 +1,16 @@
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Download, CheckCircle2 } from "lucide-react";
 import { useSettings, WALLPAPERS } from "../../os/settings";
 import { resetAndReload } from "../../os/persistence";
+import { usePWA } from "../../os/pwa";
 
 export function Settings() {
   const wallpaper = useSettings((s) => s.wallpaper);
   const setWallpaper = useSettings((s) => s.setWallpaper);
   const theme = useSettings((s) => s.theme);
   const setTheme = useSettings((s) => s.setTheme);
+  const installPrompt = usePWA((s) => s.installPrompt);
+  const installed = usePWA((s) => s.installed);
+  const promptInstall = usePWA((s) => s.promptInstall);
 
   return (
     <div className="p-5 space-y-5 text-sm">
@@ -81,6 +85,38 @@ export function Settings() {
           <li><kbd className="px-1 rounded bg-[var(--os-hover)]">Esc</kbd> — dismiss menus</li>
           <li>Right-click desktop · double-click titlebar to maximize</li>
         </ul>
+      </section>
+
+      <section>
+        <h3
+          className="text-xs uppercase tracking-wide mb-2"
+          style={{ color: "var(--os-text-dim)" }}
+        >
+          Install as app
+        </h3>
+        {installed ? (
+          <div
+            className="flex items-center gap-2 text-xs"
+            style={{ color: "var(--os-text-dim)" }}
+          >
+            <CheckCircle2 size={14} className="text-emerald-500" /> Installed —
+            running in standalone mode
+          </div>
+        ) : installPrompt ? (
+          <button
+            type="button"
+            onClick={() => promptInstall()}
+            className="px-3 py-1.5 text-xs rounded flex items-center gap-2 bg-[var(--os-active)] hover:bg-[var(--os-hover)] border border-[var(--os-border)]"
+          >
+            <Download size={14} /> Install Web OS Demo
+          </button>
+        ) : (
+          <p className="text-xs" style={{ color: "var(--os-text-dim)" }}>
+            Install option unavailable — open in a Chromium-based browser over
+            HTTPS or localhost. (On iOS, use Safari → Share → Add to Home
+            Screen.)
+          </p>
+        )}
       </section>
 
       <section>

@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { hydrate } from "./os/persistence.ts";
 import { useVFS } from "./os/vfs/store.ts";
+import "./os/pwa.ts"; // side-effect: register beforeinstallprompt listener
 import "./styles.css";
 
 // Restore window layout + wallpaper before the first render.
