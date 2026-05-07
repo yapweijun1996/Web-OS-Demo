@@ -3,7 +3,13 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Set BASE_PATH=/Web-OS-Demo/ when building for GitHub Pages so asset URLs
+// and the PWA manifest's start_url/scope get the repo prefix. Default "/"
+// works for local dev and any custom-domain deploy (Cloudflare Pages, etc).
+const base = process.env.BASE_PATH ?? "/";
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     tailwindcss(),
@@ -18,7 +24,8 @@ export default defineConfig({
         theme_color: "#0f172a",
         background_color: "#0f172a",
         display: "standalone",
-        start_url: "/",
+        start_url: base,
+        scope: base,
         icons: [
           {
             src: "icon.svg",
@@ -30,7 +37,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
-        navigateFallback: "/index.html",
+        navigateFallback: `${base}index.html`,
       },
       devOptions: {
         enabled: true,
