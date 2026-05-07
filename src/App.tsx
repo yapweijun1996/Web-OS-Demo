@@ -5,6 +5,9 @@ import { Dock } from "./shell/Dock";
 import { Spotlight } from "./shell/Spotlight";
 import { AppSwitcher } from "./shell/AppSwitcher";
 import { MissionControl } from "./shell/MissionControl";
+import { NotificationCenter } from "./shell/NotificationCenter";
+import { ClipboardHistory } from "./shell/ClipboardHistory";
+import { QuickLook } from "./shell/QuickLook";
 import { ContextMenu } from "./shell/ContextMenu";
 import { WindowHost } from "./shell/WindowHost";
 import {
@@ -46,7 +49,16 @@ export default function App() {
       // ESC closes overlays (priority order)
       if (e.key === "Escape") {
         if (ui.getState().appSwitcherOpen) ui.getState().cancelAppSwitcher();
+        else if (ui.getState().quickLookFileId) ui.getState().closeQuickLook();
         else closeAll();
+        return;
+      }
+
+      // Cmd/Ctrl+Shift+V → Clipboard history (must check BEFORE plain Cmd+V
+      // — V isn't currently a single-mod shortcut though, so order is safe)
+      if (meta && e.shiftKey && e.key.toLowerCase() === "v") {
+        e.preventDefault();
+        ui.getState().toggleClipboard();
         return;
       }
 
@@ -193,7 +205,10 @@ export default function App() {
       {/* OS chrome */}
       <MenuBar />
       <Dock />
+      <NotificationCenter />
       <Spotlight />
+      <ClipboardHistory />
+      <QuickLook />
       <AppSwitcher />
       <MissionControl />
       <ContextMenu />

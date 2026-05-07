@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Folder,
   FileText,
@@ -6,10 +6,15 @@ import {
   FolderPlus,
   Trash2,
   ChevronLeft,
+  Eye,
 } from "lucide-react";
 import { useVFS } from "../../os/vfs/store";
+import { useUI } from "../../os/ui";
+import { useNotifs } from "../../os/notifications";
 import { launchApp } from "../../os/launcher";
 import type { VFSId } from "../../os/vfs/types";
+
+const VFS_DRAG_TYPE = "application/x-vfs-file-id";
 
 export function Files() {
   const ready = useVFS((s) => s.ready);
@@ -18,12 +23,36 @@ export function Files() {
   const createFile = useVFS((s) => s.createFile);
   const createFolder = useVFS((s) => s.createFolder);
   const remove = useVFS((s) => s.remove);
+  const openQuickLook = useUI((s) => s.openQuickLook);
+  const addNotif = useNotifs((s) => s.addNotif);
 
   // re-render when nodes change
   useVFS((s) => s.nodes);
 
   const [cwd, setCwd] = useState<VFSId | null>(null);
   const [selected, setSelected] = useState<VFSId | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Spacebar → Quick Look the selected file (only when this Files window is
+  // hovered/focused; we use window keydown gated by mouse-inside flag).
+  const [hovered, setHovered] = useState(false);
+  useEffect(() => {
+    if (!hovered) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== " ") return;
+      // Don't fire if user is typing in an input
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (!selected) return;
+      const n = getNode(selected);
+      if (!n || n.type !== "file") return;
+      e.preventDefault();
+      openQuickLook(selected);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [hovered, selected, getNode, openQuickLook]);
 
   if (!ready) {
     return (
@@ -80,14 +109,71 @@ export function Files() {
     if (!selected) return;
     const n = getNode(selected);
     if (!n) return;
-    if (!confirm(`Delete "${n.name}"${n.type === "folder" ? " and all contents" : ""}?`))
+    if (
+      !confirm(
+        `Delete "${n.name}"${n.type === "folder" ? " and all contents" : ""}?`,
+      )
+    )
       return;
     await remove(selected);
     setSelected(null);
   };
 
+  // Drop handler — accept plain text (creates a new file) or another VFS file
+  // (moves it, but we only have flat parent reassignment by moving into cwd).
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const vfsId = e.dataTransfer.getData(VFS_DRAG_TYPE);
+    if (vfsId) {
+      // For now: noop — re-parenting needs a ui story (drop on folder vs blank).
+      return;
+    }
+    const text = e.dataTransfer.getData("text/plain");
+    if (text) {
+      const name =
+        prompt(
+          "Save dropped text as:",
+          `Pasted-${new Date().toISOString().slice(11, 19).replace(/:/g, "")}.txt`,
+        )?.trim();
+      if (!name) return;
+      const id = await createFile(name, cwd, text);
+      setSelected(id);
+      addNotif({
+        title: "File created",
+        body: `${name} (${text.length} chars) saved from drag`,
+        appId: "files",
+      });
+    }
+  };
+
   return (
-    <div className="h-full flex flex-col text-sm">
+    <div
+      ref={rootRef}
+      className="h-full flex flex-col text-sm relative"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) setDragOver(false);
+      }}
+      onDrop={handleDrop}
+    >
+      {dragOver && (
+        <div
+          className="absolute inset-0 z-10 pointer-events-none rounded-lg border-2 border-dashed grid place-items-center text-xs font-medium"
+          style={{
+            borderColor: "#007aff",
+            background: "rgba(0,122,255,0.08)",
+            color: "var(--os-text)",
+          }}
+        >
+          Drop text here to create a file
+        </div>
+      )}
       {/* toolbar */}
       <div
         className="flex items-center gap-1 px-2 py-1.5 border-b"
@@ -131,6 +217,15 @@ export function Files() {
         </div>
         <button
           type="button"
+          onClick={() => selected && openQuickLook(selected)}
+          disabled={!selected || getNode(selected!)?.type !== "file"}
+          className="px-2 h-7 flex items-center gap-1 rounded hover:bg-[var(--os-hover)] text-xs disabled:opacity-30"
+          title="Quick Look (Space)"
+        >
+          <Eye size={14} />
+        </button>
+        <button
+          type="button"
           onClick={newFile}
           className="px-2 h-7 flex items-center gap-1 rounded hover:bg-[var(--os-hover)] text-xs"
           title="New file"
@@ -170,12 +265,20 @@ export function Files() {
             const Icon = n.type === "folder" ? Folder : FileText;
             const isSelected = selected === n.id;
             return (
-              <button
+              <div
                 key={n.id}
-                type="button"
+                role="button"
+                tabIndex={0}
+                draggable={n.type === "file"}
+                onDragStart={(e) => {
+                  if (n.type !== "file") return;
+                  e.dataTransfer.setData(VFS_DRAG_TYPE, n.id);
+                  e.dataTransfer.setData("text/plain", n.content);
+                  e.dataTransfer.effectAllowed = "copy";
+                }}
                 onClick={() => setSelected(n.id)}
                 onDoubleClick={() => open(n.id)}
-                className={`w-full flex items-center gap-2 px-2 py-1 rounded text-left text-sm ${
+                className={`w-full flex items-center gap-2 px-2 py-1 rounded text-left text-sm cursor-default outline-none ${
                   isSelected
                     ? "bg-[var(--os-active)]"
                     : "hover:bg-[var(--os-hover)]"
@@ -185,7 +288,9 @@ export function Files() {
                   size={16}
                   className={n.type === "folder" ? "text-amber-500" : ""}
                   style={
-                    n.type === "folder" ? undefined : { color: "var(--os-text-dim)" }
+                    n.type === "folder"
+                      ? undefined
+                      : { color: "var(--os-text-dim)" }
                   }
                 />
                 <span className="truncate flex-1">{n.name}</span>
@@ -197,7 +302,7 @@ export function Files() {
                     {n.content.length} chars
                   </span>
                 )}
-              </button>
+              </div>
             );
           })
         )}

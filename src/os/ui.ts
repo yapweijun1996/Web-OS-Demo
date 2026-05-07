@@ -10,6 +10,9 @@ type UIStore = {
   appSwitcherOpen: boolean;
   appSwitcherIdx: number;
   missionControlOpen: boolean;
+  notifCenterOpen: boolean;
+  clipboardOpen: boolean;
+  quickLookFileId: string | null;
   contextMenu: { x: number; y: number; items: ContextMenuItem[] } | null;
 
   toggleSpotlight: () => void;
@@ -20,6 +23,10 @@ type UIStore = {
   cancelAppSwitcher: () => void;
   toggleMissionControl: () => void;
   setMissionControl: (open: boolean) => void;
+  toggleNotifCenter: () => void;
+  toggleClipboard: () => void;
+  openQuickLook: (fileId: string) => void;
+  closeQuickLook: () => void;
   openContextMenu: (x: number, y: number, items: ContextMenuItem[]) => void;
   closeContextMenu: () => void;
   closeAll: () => void;
@@ -30,6 +37,9 @@ export const useUI = create<UIStore>((set) => ({
   appSwitcherOpen: false,
   appSwitcherIdx: 0,
   missionControlOpen: false,
+  notifCenterOpen: false,
+  clipboardOpen: false,
+  quickLookFileId: null,
   contextMenu: null,
 
   toggleSpotlight: () =>
@@ -37,6 +47,8 @@ export const useUI = create<UIStore>((set) => ({
       spotlightOpen: !s.spotlightOpen,
       contextMenu: null,
       missionControlOpen: false,
+      clipboardOpen: false,
+      quickLookFileId: null,
     })),
   setSpotlight: (open) => set({ spotlightOpen: open }),
   openAppSwitcher: () =>
@@ -52,8 +64,19 @@ export const useUI = create<UIStore>((set) => ({
       missionControlOpen: !s.missionControlOpen,
       contextMenu: null,
       spotlightOpen: false,
+      clipboardOpen: false,
     })),
   setMissionControl: (open) => set({ missionControlOpen: open }),
+  toggleNotifCenter: () =>
+    set((s) => ({ notifCenterOpen: !s.notifCenterOpen })),
+  toggleClipboard: () =>
+    set((s) => ({
+      clipboardOpen: !s.clipboardOpen,
+      spotlightOpen: false,
+      contextMenu: null,
+    })),
+  openQuickLook: (fileId) => set({ quickLookFileId: fileId }),
+  closeQuickLook: () => set({ quickLookFileId: null }),
   openContextMenu: (x, y, items) =>
     set({ contextMenu: { x, y, items }, spotlightOpen: false }),
   closeContextMenu: () => set({ contextMenu: null }),
@@ -63,5 +86,8 @@ export const useUI = create<UIStore>((set) => ({
       contextMenu: null,
       appSwitcherOpen: false,
       missionControlOpen: false,
+      notifCenterOpen: false,
+      clipboardOpen: false,
+      quickLookFileId: null,
     }),
 }));

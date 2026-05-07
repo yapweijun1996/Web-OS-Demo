@@ -4,6 +4,8 @@ import { useVFS } from "../../os/vfs/store";
 import { launchApp } from "../../os/launcher";
 import type { VFSId } from "../../os/vfs/types";
 
+const VFS_DRAG_TYPE = "application/x-vfs-file-id";
+
 export function Notes({ windowId }: { windowId: string }) {
   const setTitle = useWindows((s) => s.setTitle);
   const w = useWindows((s) => s.windows.find((ww) => ww.id === windowId));
@@ -18,6 +20,7 @@ export function Notes({ windowId }: { windowId: string }) {
 
   const [text, setText] = useState<string>(file?.content ?? "");
   const lastSavedRef = useRef<string>(file?.content ?? "");
+  const taRef = useRef<HTMLTextAreaElement>(null);
 
   // Hydrate text whenever the bound file changes (or first becomes available).
   useEffect(() => {
@@ -77,12 +80,63 @@ export function Notes({ windowId }: { windowId: string }) {
     );
   }
 
+  // Insert text at the cursor (or replace selection).
+  const insertAtCursor = (insert: string) => {
+    const ta = taRef.current;
+    if (!ta) {
+      setText((t) => t + insert);
+      return;
+    }
+    const start = ta.selectionStart ?? text.length;
+    const end = ta.selectionEnd ?? text.length;
+    const next = text.slice(0, start) + insert + text.slice(end);
+    setText(next);
+    requestAnimationFrame(() => {
+      const pos = start + insert.length;
+      ta.focus();
+      ta.setSelectionRange(pos, pos);
+    });
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    const vfsId = e.dataTransfer.getData(VFS_DRAG_TYPE);
+    if (vfsId) {
+      e.preventDefault();
+      const dropped = getNode(vfsId);
+      if (dropped?.type === "file") {
+        insertAtCursor(
+          (text.length > 0 && !text.endsWith("\n") ? "\n\n" : "") +
+            `--- ${dropped.name} ---\n` +
+            dropped.content +
+            "\n",
+        );
+      }
+      return;
+    }
+    const plain = e.dataTransfer.getData("text/plain");
+    if (plain) {
+      e.preventDefault();
+      insertAtCursor(plain);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       <textarea
+        ref={taRef}
         className="flex-1 w-full p-3 bg-transparent text-sm outline-none resize-none font-mono leading-relaxed"
         value={text}
         onChange={(e) => setText(e.target.value)}
+        onDragOver={(e) => {
+          // Accept VFS files OR plain text drops
+          if (
+            e.dataTransfer.types.includes(VFS_DRAG_TYPE) ||
+            e.dataTransfer.types.includes("text/plain")
+          ) {
+            e.preventDefault();
+          }
+        }}
+        onDrop={handleDrop}
         placeholder="Type your notes here…"
         spellCheck={false}
       />

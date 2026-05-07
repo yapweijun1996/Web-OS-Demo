@@ -4,6 +4,7 @@ import { APP_LIST } from "../os/apps";
 import { launchApp } from "../os/launcher";
 import { useUI } from "../os/ui";
 import { useVFS } from "../os/vfs/store";
+import { useNotifs } from "../os/notifications";
 import type { ComponentType } from "react";
 
 type Item = {
@@ -41,6 +42,8 @@ export function Spotlight() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const allFiles = useVFS((s) => s.nodes);
+  const copyText = useNotifs((s) => s.copyText);
+  const addNotif = useNotifs((s) => s.addNotif);
 
   // Reset on each open.
   useEffect(() => {
@@ -63,7 +66,11 @@ export function Spotlight() {
         hint: "press Enter to copy",
         Icon: Calculator,
         action: () => {
-          navigator.clipboard?.writeText(calc).catch(() => {});
+          copyText(calc);
+          addNotif({
+            title: "Copied to clipboard",
+            body: `${q.trim()} = ${calc}`,
+          });
         },
       });
     }

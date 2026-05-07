@@ -17,6 +17,7 @@ export function MenuBar() {
   const activeSpaceId = useWindows((s) => s.activeSpaceId);
   const switchSpace = useWindows((s) => s.switchSpace);
   const toggleMissionControl = useUI((s) => s.toggleMissionControl);
+  const toggleNotifCenter = useUI((s) => s.toggleNotifCenter);
   const activeSpace = spaces.find((s) => s.id === activeSpaceId);
 
   return (
@@ -61,7 +62,14 @@ export function MenuBar() {
         >
           {activeSpace?.name ?? "Desktop"}
         </button>
-        <Clock />
+        <button
+          type="button"
+          onClick={() => toggleNotifCenter()}
+          title="Notification Center"
+          className="hover:opacity-100"
+        >
+          <Clock />
+        </button>
       </div>
     </div>
   );
